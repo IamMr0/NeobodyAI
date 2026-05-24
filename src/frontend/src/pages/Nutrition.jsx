@@ -96,7 +96,7 @@ export default function Nutrition() {
 
         {/* Right: AI Insight Sidebar */}
         <aside className="col-span-12 lg:col-span-4 space-y-stack-lg">
-          <div className="bg-surface border-thick border-secondary p-stack-md shadow-[4px_4px_0px_0px_#0040e0] relative overflow-hidden">
+          <div className="bg-surface border-thick border-secondary p-stack-md shadow-[4px_4px_0px_0px_#18181b] relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-secondary text-on-secondary px-3 py-1 font-label-bold text-label-sm uppercase">AI Insight</div>
             <div className="flex items-center gap-stack-sm mb-stack-md mt-2">
               <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
