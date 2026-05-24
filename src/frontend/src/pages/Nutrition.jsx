@@ -1,22 +1,22 @@
 export default function Nutrition() {
   return (
-    <div className="p-margin-mobile w-full min-h-full overflow-y-auto">
+    <div className="p-margin-mobile w-full h-full overflow-y-auto">
       {/* Summary Section */}
       <section className="mb-stack-lg">
         <div className="bg-surface border-thick border-on-surface p-stack-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-stack-md">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-stack-md">
             <div>
               <span className="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest">Fuel Level</span>
               <h3 className="font-headline-xl text-headline-xl mt-stack-sm">2,850 <span className="text-headline-md">kcal</span></h3>
               <p className="font-body-md text-body-md text-on-surface-variant">Target: 3,200 kcal / 350 left</p>
             </div>
-            <div className="flex-grow max-w-2xl px-stack-lg">
+            <div className="flex-grow max-w-2xl px-0 md:px-stack-lg w-full">
               <div className="h-8 border-thick border-on-surface flex bg-surface-container overflow-hidden">
                 <div className="h-full bg-tertiary-fixed-dim border-r-thin border-on-surface w-[85%]"></div>
                 <div className="h-full bg-surface-container flex-grow"></div>
               </div>
             </div>
-            <div className="flex gap-stack-sm">
+            <div className="flex gap-stack-sm justify-start md:justify-end">
               <div className="bg-primary-container border-thin border-on-surface px-4 py-2 flex items-center gap-2">
                 <span className="material-symbols-outlined">bolt</span>
                 <span className="font-label-bold text-label-bold">SURPLUS ACTIVE</span>

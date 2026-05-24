@@ -11,7 +11,7 @@ export default function NavBar() {
   };
 
   return (
-    <nav className="fixed left-0 top-0 h-full flex flex-col p-margin-mobile z-40 w-64 border-r-thick border-on-surface bg-surface shadow-[4px_0px_0px_0px_rgba(0,0,0,1)]">
+    <nav className="hidden md:flex fixed left-0 top-0 h-full flex-col p-margin-mobile z-40 w-64 border-r-thick border-on-surface bg-surface shadow-[4px_0px_0px_0px_rgba(0,0,0,1)]">
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-on-surface italic uppercase tracking-tighter">IRON AI</h1>
         <p className="font-label-bold text-label-bold text-on-surface-variant opacity-70">AI Gym Assistant</p>

@@ -3,12 +3,12 @@ export default function WorkoutBuilder() {
     <div className="p-margin-mobile bg-background h-full overflow-y-auto">
       <div className="max-w-[1400px] mx-auto space-y-stack-lg">
         {/* Top Action Bar */}
-        <div className="flex justify-between items-end border-thick border-on-surface p-stack-lg bg-surface shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-end border-thick border-on-surface p-4 sm:p-stack-lg bg-surface shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] gap-4">
           <div>
             <h2 className="font-headline-xl text-headline-xl uppercase tracking-tight">Build It</h2>
             <p className="font-body-lg text-body-lg text-on-surface-variant">Customize your engineering targets for maximum output.</p>
           </div>
-          <button className="bg-primary-container text-on-primary-container border-thick border-on-surface px-12 py-6 font-headline-md text-headline-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all flex items-center gap-stack-md">
+          <button className="bg-primary-container text-on-primary-container border-thick border-on-surface px-6 sm:px-12 py-4 sm:py-6 font-label-bold sm:font-headline-md text-headline-sm sm:text-headline-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] sm:hover:translate-x-[-4px] hover:translate-y-[-2px] sm:hover:translate-y-[-4px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all flex items-center justify-center gap-stack-md">
             <span className="material-symbols-outlined" data-icon="bolt" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
             AI Generate Plan
           </button>

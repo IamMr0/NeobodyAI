@@ -2,7 +2,7 @@ export default function AIChatbot() {
   return (
     <div className="flex w-full h-full">
       {/* Left: Chat History */}
-      <aside className="w-72 border-r-thick border-on-surface bg-surface-container-low flex flex-col h-full">
+      <aside className="hidden md:flex w-72 border-r-thick border-on-surface bg-surface-container-low flex-col h-full">
         <div className="p-4 border-b-thin border-on-surface bg-surface-container">
           <p className="font-label-bold text-label-sm uppercase opacity-60">History</p>
         </div>
@@ -81,18 +81,16 @@ export default function AIChatbot() {
         </div>
 
         {/* Bottom: Command Input Bar */}
-        <div className="absolute bottom-0 left-0 w-full p-stack-md bg-surface-bright">
-          <div className="max-w-4xl mx-auto flex gap-4">
-            <div className="flex-1 relative">
-              <input className="w-full bg-surface-container-lowest border-thick border-on-surface p-4 font-body-md text-body-lg focus:ring-0 focus:outline-none focus:bg-primary-container/10 placeholder:text-outline shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" placeholder="Command IRON AI... (e.g., 'Check my deadlift form')" type="text" />
-              <div className="absolute left-[-48px] top-0 bottom-0 flex items-center">
-                <button className="bg-surface border-thick border-on-surface p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all">
-                  <span className="material-symbols-outlined" data-icon="add">add</span>
-                </button>
-              </div>
+        <div className="absolute bottom-0 left-0 w-full p-4 bg-surface-bright border-t border-on-surface/10">
+          <div className="max-w-4xl mx-auto flex items-center gap-2 sm:gap-4">
+            <button className="bg-surface border-thick border-on-surface p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all">
+              <span className="material-symbols-outlined" data-icon="add">add</span>
+            </button>
+            <div className="flex-grow">
+              <input className="w-full bg-surface-container-lowest border-thick border-on-surface p-3 sm:p-4 font-body-md text-body-md sm:text-body-lg focus:ring-0 focus:outline-none focus:bg-primary-container/10 placeholder:text-outline shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" placeholder="Command IRON AI... (e.g., 'Check deadlift form')" type="text" />
             </div>
-            <button className="bg-primary text-on-primary border-thick border-on-surface px-8 font-label-bold text-label-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all flex items-center gap-2">
-              <span>SEND</span>
+            <button className="bg-primary text-on-primary border-thick border-on-surface px-4 sm:px-8 py-3 sm:py-4 font-label-bold text-label-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2">
+              <span className="hidden sm:inline">SEND</span>
               <span className="material-symbols-outlined" data-icon="send">send</span>
             </button>
           </div>
@@ -100,7 +98,7 @@ export default function AIChatbot() {
       </section>
 
       {/* Right: AI Analysis Contextual Sidebar */}
-      <aside className="w-80 border-l-thick border-on-surface bg-surface flex flex-col p-6 overflow-y-auto h-full">
+      <aside className="hidden lg:flex w-80 border-l-thick border-on-surface bg-surface flex-col p-6 overflow-y-auto h-full">
         <div className="mb-stack-lg">
           <h2 className="font-headline-md text-headline-md uppercase border-b-thick border-on-surface pb-2 mb-4">LIVE ANALYSIS</h2>
           

@@ -96,25 +96,25 @@ export default function BodyAnalysis() {
 
       {/* Body Composition 3D Section */}
       <section className="bg-surface-container-lowest border-thick border-on-surface overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-stack-lg">
-        <div className="grid grid-cols-1 lg:grid-cols-5 h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 h-auto lg:h-[600px]">
           {/* Left Control Panel */}
-          <div className="lg:col-span-1 p-stack-md border-r-thick border-on-surface flex flex-col justify-between">
+          <div className="lg:col-span-1 p-stack-md border-b-thick lg:border-b-0 lg:border-r-thick border-on-surface flex flex-col justify-between gap-4">
             <div>
               <h3 className="font-headline-md text-headline-md mb-stack-md uppercase italic">Body 3D</h3>
-              <div className="space-y-stack-sm">
-                <button className="w-full text-left p-stack-sm border-thin border-on-surface bg-primary-container font-label-bold text-label-bold">SKELETAL</button>
-                <button className="w-full text-left p-stack-sm border-thin border-on-surface hover:bg-surface-container font-label-bold text-label-bold transition-all">MUSCULAR</button>
-                <button className="w-full text-left p-stack-sm border-thin border-on-surface hover:bg-surface-container font-label-bold text-label-bold transition-all">HEATMAP</button>
+              <div className="space-y-stack-sm flex flex-row lg:flex-col gap-2 lg:gap-stack-sm">
+                <button className="flex-1 lg:flex-none text-center lg:text-left p-stack-sm border-thin border-on-surface bg-primary-container font-label-bold text-label-bold">SKELETAL</button>
+                <button className="flex-1 lg:flex-none text-center lg:text-left p-stack-sm border-thin border-on-surface hover:bg-surface-container font-label-bold text-label-bold transition-all">MUSCULAR</button>
+                <button className="flex-1 lg:flex-none text-center lg:text-left p-stack-sm border-thin border-on-surface hover:bg-surface-container font-label-bold text-label-bold transition-all">HEATMAP</button>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 hidden lg:block">
               <p className="font-label-sm text-label-sm text-on-surface-variant italic">RENDER V.2.04</p>
               <div className="w-full h-1 bg-on-surface"></div>
             </div>
           </div>
           
           {/* Main Visualization Canvas */}
-          <div className="lg:col-span-3 relative bg-[radial-gradient(#e2e2e2_1px,transparent_1px)] [background-size:20px_20px] flex items-center justify-center">
+          <div className="lg:col-span-3 h-[350px] lg:h-full relative bg-[radial-gradient(#e2e2e2_1px,transparent_1px)] [background-size:20px_20px] flex items-center justify-center overflow-hidden">
             {/* AI Scanner Overlay */}
             <div className="absolute inset-x-0 top-1/4 h-1 bg-secondary-container/50 blur-[2px] z-10"></div>
             <img alt="3D Anatomical Visualization" className="h-full w-auto object-contain mix-blend-multiply opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAEmmqB4YQ1BA6j5supBgpqWFRy_AIuye9sY-T_grSaOR6bYA4tMHoLG1PiCkSbEbsgkbWJTbop0rY7I1CZddmJuys3epNRo1aYJa2k9E6yCmPXbViGEyJ8k2mp7XrO_5totgawHaj-WYeiUfiNJCWEemqyNPT7N9auS0JwxEvSHnJQIIPRH0HSj3gulqBcTZyujBixg4FTYSXtZ5iU8zL5R1ra0ipAhE6jeBGZywTA9eiY0DMU9pffzJy1FhkKJ8ngql9Va0oc1yN" />
@@ -128,7 +128,7 @@ export default function BodyAnalysis() {
           </div>
           
           {/* Right Data Panel */}
-          <div className="lg:col-span-1 p-stack-md border-l-thick border-on-surface bg-surface-container">
+          <div className="lg:col-span-1 p-stack-md border-t-thick lg:border-t-0 lg:border-l-thick border-on-surface bg-surface-container">
             <h4 className="font-label-bold text-label-bold uppercase mb-stack-md">Tissue Distribution</h4>
             <div className="space-y-stack-md">
               <div>

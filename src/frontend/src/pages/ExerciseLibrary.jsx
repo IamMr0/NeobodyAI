@@ -32,7 +32,7 @@ export default function ExerciseLibrary() {
           <button className="font-label-bold text-label-bold px-stack-md py-stack-sm border-thin border-on-surface bg-surface-container-lowest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-primary-container transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
             Kettlebell
           </button>
-          <button className="ml-auto flex items-center gap-2 font-label-bold text-label-bold px-stack-md py-stack-sm border-thin border-on-surface bg-surface-container-lowest">
+          <button className="md:ml-auto w-full md:w-auto justify-center flex items-center gap-2 font-label-bold text-label-bold px-stack-md py-stack-sm border-thin border-on-surface bg-surface-container-lowest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <span className="material-symbols-outlined" data-icon="filter_list">filter_list</span>
             More Filters
           </button>
