@@ -126,10 +126,24 @@ All pages support mobile screens from `320px` wide:
 
 ## 7. What Remains To Be Done
 
-- [ ] Backend API development (FastAPI / Node)
+- [ ] Backend API development (Django Rest Framework)
 - [ ] AI Chatbot integration (LLM API connection)
 - [ ] Real data wiring (replace mock data with API calls)
 - [ ] Authentication (Login / Register screens)
 - [ ] 3D Body Mapping (Computer Vision integration)
 - [ ] Wearable sensor sync
 - [ ] User settings and profile management
+
+---
+
+## 8. Docker & Backend Infrastructure Setup
+
+A complete multi-container Docker development environment has been established:
+- **Orchestration:** `docker-compose.yaml` coordinates the three main tiers: frontend, backend, and database.
+- **Database:** PostgreSQL 15 (`neobody_db`) service configured with local storage volume persistence.
+- **Backend:** Django application containerized using Python 3.11-slim, pre-configured with:
+  - PostgreSQL database connection adapter (`psycopg2-binary`)
+  - Django REST Framework (`djangorestframework`)
+  - CORS policies (`django-cors-headers`) to allow cross-origin API requests from Vite.
+- **Frontend:** React/Vite application containerized with Node 20-alpine. Updated `vite.config.js` to enable filesystem polling to guarantee Hot Module Replacement (HMR) syncs properly across Windows host volume mounts.
+

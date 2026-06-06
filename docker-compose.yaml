@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: neobody_db
+    environment:
+      POSTGRES_DB: neobody_db
+      POSTGRES_USER: neobody_user
+      POSTGRES_PASSWORD: neobody_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neobody_user -d neobody_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: neobody_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./src/backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=neobody_db
+      - DB_USER=neobody_user
+      - DB_PASSWORD=neobody_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: neobody_frontend
+    command: npm run dev -- --host
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
