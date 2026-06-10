@@ -126,10 +126,10 @@ All pages support mobile screens from `320px` wide:
 
 ## 7. What Remains To Be Done
 
-- [ ] Backend API development (Django Rest Framework)
+- [x] Backend API development (Django Rest Framework) - *Schema and Auth done*
 - [ ] AI Chatbot integration (LLM API connection)
 - [ ] Real data wiring (replace mock data with API calls)
-- [ ] Authentication (Login / Register screens)
+- [x] Authentication (Login / Register screens) - *JWT Auth Context integrated*
 - [ ] 3D Body Mapping (Computer Vision integration)
 - [ ] Wearable sensor sync
 - [ ] User settings and profile management
@@ -146,4 +146,18 @@ A complete multi-container Docker development environment has been established:
   - Django REST Framework (`djangorestframework`)
   - CORS policies (`django-cors-headers`) to allow cross-origin API requests from Vite.
 - **Frontend:** React/Vite application containerized with Node 20-alpine. Updated `vite.config.js` to enable filesystem polling to guarantee Hot Module Replacement (HMR) syncs properly across Windows host volume mounts.
+
+---
+
+## 9. Authentication System & Backend Schema
+
+- **Backend Architecture**: Structured into 4 distinct Django apps (`users`, `fitness`, `nutrition`, `chatbot`).
+- **Database Schema**:
+  - `users`: Custom `User` model.
+  - `fitness`: `Exercise`, `WorkoutTemplate`, `WorkoutExercise`, `BodyMetrics`.
+  - `nutrition`: `DailyNutrition`, `HydrationLog`.
+  - `chatbot`: `ChatSession`, `ChatMessage`.
+- **JWT Authentication**: Integrated `djangorestframework-simplejwt` for secure API token exchange.
+- **Frontend Auth Guards**: Implemented React `AuthContext` with `localStorage` token management and a `ProtectedRoute` component wrapping the main application layout to prevent unauthorized access.
+- **Auth UI**: Built Neubrutalist `Login.jsx` and `Register.jsx` pages directly hooked up to the Django REST APIs.
 

@@ -5,21 +5,32 @@ import ExerciseLibrary from './pages/ExerciseLibrary';
 import WorkoutBuilder from './pages/WorkoutBuilder';
 import Nutrition from './pages/Nutrition';
 import BodyAnalysis from './pages/BodyAnalysis';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/analysis" replace />} />
-          <Route path="analysis" element={<BodyAnalysis />} />
-          <Route path="nutrition" element={<Nutrition />} />
-          <Route path="library" element={<ExerciseLibrary />} />
-          <Route path="builder" element={<WorkoutBuilder />} />
-          <Route path="chat" element={<AIChatbot />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Navigate to="/analysis" replace />} />
+              <Route path="analysis" element={<BodyAnalysis />} />
+              <Route path="nutrition" element={<Nutrition />} />
+              <Route path="library" element={<ExerciseLibrary />} />
+              <Route path="builder" element={<WorkoutBuilder />} />
+              <Route path="chat" element={<AIChatbot />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
