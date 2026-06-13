@@ -8,12 +8,33 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (token) {
-            setUser({ loggedIn: true });
-        } else {
-            setUser(null);
-        }
-        setLoading(false);
+        const fetchUser = async () => {
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:8000/api/users/me/', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUser({ loggedIn: true, ...data });
+                    } else {
+                        setUser(null);
+                        setToken(null);
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch user', err);
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        };
+        fetchUser();
     }, [token]);
 
     const login = async (username, password) => {

@@ -14,6 +14,8 @@ export default function AppLayout() {
       case '/library': return 'Smart Exercise Library';
       case '/builder': return 'Custom Workout Builder';
       case '/chat': return 'AI Chatbot Assistant';
+      case '/profile': return 'My Profile';
+      case '/admin': return 'Admin Dashboard';
       default: return 'IRON AI Command Center';
     }
   };

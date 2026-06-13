@@ -1,6 +1,10 @@
 import { NavLink } from 'react-router-dom';
+import { useContext } from 'react';
+import AuthContext from '../context/AuthContext';
 
 export default function BottomNavBar() {
+  const { user } = useContext(AuthContext);
+
   const getNavClass = ({ isActive }) => {
     const baseClass = "flex flex-col items-center justify-center p-2 w-full h-full transition-colors ";
     if (isActive) {
@@ -36,6 +40,13 @@ export default function BottomNavBar() {
         <span className="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
         <span className="text-[10px] font-label-bold uppercase mt-1">AI</span>
       </NavLink>
+      
+      {user?.is_staff && (
+        <NavLink to="/admin" className={getNavClass}>
+          <span className="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+          <span className="text-[10px] font-label-bold uppercase mt-1">Admin</span>
+        </NavLink>
+      )}
     </nav>
   );
 }

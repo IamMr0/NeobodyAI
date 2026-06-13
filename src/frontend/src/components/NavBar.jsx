@@ -1,6 +1,10 @@
 import { NavLink } from 'react-router-dom';
+import { useContext } from 'react';
+import AuthContext from '../context/AuthContext';
 
 export default function NavBar() {
+  const { user } = useContext(AuthContext);
+
   const getNavClass = ({ isActive }) => {
     const baseClass = "flex items-center gap-stack-sm p-stack-sm font-label-bold text-label-bold transition-all ";
     if (isActive) {
@@ -33,6 +37,11 @@ export default function NavBar() {
         <NavLink to="/chat" className={getNavClass}>
           <span className="material-symbols-outlined">smart_toy</span> AI Chat
         </NavLink>
+        {user?.is_staff && (
+          <NavLink to="/admin" className={getNavClass}>
+            <span className="material-symbols-outlined">admin_panel_settings</span> Admin
+          </NavLink>
+        )}
       </div>
 
       <button className="mt-auto mb-stack-md bg-secondary text-on-secondary font-label-bold text-label-bold border-thick border-on-surface p-stack-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all">

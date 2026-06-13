@@ -1,3 +1,5 @@
+import { NavLink } from 'react-router-dom';
+
 export default function TopAppBar({ title }) {
   return (
     <header className="flex justify-between items-center h-16 md:h-20 px-margin-mobile w-full sticky top-0 z-30 bg-surface border-b-thick border-on-surface shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -12,7 +14,9 @@ export default function TopAppBar({ title }) {
         </button>
         <div className="flex items-center gap-stack-sm">
           <span className="material-symbols-outlined p-2 text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-all" data-icon="notifications">notifications</span>
-          <span className="material-symbols-outlined p-2 text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-all" data-icon="account_circle">account_circle</span>
+          <NavLink to="/profile" className="flex items-center">
+            <span className="material-symbols-outlined p-2 text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-all" data-icon="account_circle">account_circle</span>
+          </NavLink>
         </div>
       </div>
     </header>

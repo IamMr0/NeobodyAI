@@ -109,6 +109,7 @@ A complete design token system was built using Tailwind v4's `@theme` block:
 | `/library` | `ExerciseLibrary` |
 | `/builder` | `WorkoutBuilder` |
 | `/chat` | `AIChatbot` |
+| `/admin` | `AdminDashboard` |
 
 ---
 
@@ -161,3 +162,11 @@ A complete multi-container Docker development environment has been established:
 - **Frontend Auth Guards**: Implemented React `AuthContext` with `localStorage` token management and a `ProtectedRoute` component wrapping the main application layout to prevent unauthorized access.
 - **Auth UI**: Built Neubrutalist `Login.jsx` and `Register.jsx` pages directly hooked up to the Django REST APIs.
 
+---
+
+## 10. Admin Command Center
+
+- **Frontend Component (`AdminDashboard.jsx`)**: Built a secure, real-time admin dashboard using the neobrutalist design system. It displays statistics cards for Total Registered Users, Active Users, and Upgraded Users (mocked ratio).
+- **Conditional Navigation**: Updated the desktop (`NavBar.jsx`) and mobile (`BottomNavBar.jsx`) navigations to conditionally render the "Admin" link only if the current user has `is_staff` privileges.
+- **Backend API (`AdminDashboardStatsView`)**: Created a protected endpoint (`/api/users/dashboard-stats/`) in Django that aggregates user metrics. Secured with `IsAdminUser` permissions.
+- **Context Enhancement**: Upgraded `AuthContext.jsx` to fetch the full user profile (`/api/users/me/`) on mount/login to accurately determine admin status. Updated `UserProfileSerializer` to include `is_staff`.
