@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import ManageUsers from './pages/ManageUsers';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -30,6 +31,7 @@ function App() {
               <Route path="chat" element={<AIChatbot />} />
               <Route path="profile" element={<Profile />} />
               <Route path="admin" element={<AdminDashboard />} />
+              <Route path="admin/users" element={<ManageUsers />} />
             </Route>
           </Route>
         </Routes>

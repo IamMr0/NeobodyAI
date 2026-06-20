@@ -36,6 +36,8 @@ services:
       - DB_PORT=5432
       - DEBUG=True
       - ALLOWED_HOSTS=*
+    env_file:
+      - ./src/backend/.env
     depends_on:
       db:
         condition: service_healthy

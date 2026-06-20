@@ -5,15 +5,32 @@ A high-performance fitness ecosystem leveraging AI for biomechanical data, tailo
 ## Tech Stack
 - **Frontend**: React + Vite + Tailwind V4
 - **Backend**: Django REST Framework + SimpleJWT Authentication
+- **AI / LLM**: Google Gemini 1.5 Flash (via `google-generativeai`)
 - **Database**: PostgreSQL 15
 - **Orchestration**: Docker Compose
 
+## Core Features
+- **AI Chatbot**: Context-aware RAG fitness assistant that knows your exercise history and body metrics.
+- **Body Analysis**: Log your weight, body fat, and muscle mass to receive instant AI metabolic insights.
+- **Nutrition Tracking**: Log meals to see dynamic macros and receive real-time AI dietary advice.
+- **Admin Command Center**: Built-in user management dashboard with full CRUD capabilities.
+
 ## Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or equivalent Docker engine) installed and running.
+- A Google Gemini API Key.
 
 ## How to Run the App
 
-### 1. Start the Containers
+### 1. Configure Environment Variables
+Before running the app, you must set up your backend environment variables to enable the AI features.
+1. Navigate to the backend directory: `src/backend/`
+2. You will find an `.env` file (or create one if it's missing).
+3. Open it and add your Gemini API Key:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+### 2. Start the Containers
 Open your terminal in the root directory of the project (where `docker-compose.yaml` is located) and run:
 ```bash
 docker compose up --build -d

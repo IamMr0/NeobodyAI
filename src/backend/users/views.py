@@ -33,3 +33,25 @@ class AdminDashboardStatsView(APIView):
             'active_users': active_users,
             'upgraded_users': upgraded_users,
         })
+
+class UserListCreateView(generics.ListCreateAPIView):
+    queryset = User.objects.all().order_by('-date_joined')
+    permission_classes = (IsAdminUser,)
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            from .serializers import AdminUserCreateSerializer
+            return AdminUserCreateSerializer
+        from .serializers import AdminUserSerializer
+        return AdminUserSerializer
+
+class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    permission_classes = (IsAdminUser,)
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            from .serializers import AdminUserCreateSerializer
+            return AdminUserCreateSerializer
+        from .serializers import AdminUserSerializer
+        return AdminUserSerializer

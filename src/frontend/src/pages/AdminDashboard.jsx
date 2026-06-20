@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 
 export default function AdminDashboard() {
@@ -7,6 +7,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -128,7 +129,7 @@ export default function AdminDashboard() {
       <div className="bg-surface-container-lowest border-thick border-on-surface p-stack-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <h3 className="font-headline-sm text-headline-sm uppercase mb-stack-md border-b-thin border-outline-variant pb-2">Quick Actions</h3>
         <div className="flex flex-wrap gap-stack-sm">
-          <button className="flex items-center gap-2 bg-surface text-on-surface border-thick border-on-surface px-6 py-3 font-label-bold text-label-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all uppercase">
+          <button onClick={() => navigate('/admin/users')} className="flex items-center gap-2 bg-surface text-on-surface border-thick border-on-surface px-6 py-3 font-label-bold text-label-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all uppercase cursor-pointer">
             <span className="material-symbols-outlined">manage_accounts</span> Manage Users
           </button>
           <button className="flex items-center gap-2 bg-surface text-on-surface border-thick border-on-surface px-6 py-3 font-label-bold text-label-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all uppercase">
