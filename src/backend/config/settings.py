@@ -10,8 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-m5(2g(1m3_w%u(y(y94lms4&srf*k*g6m@z5(67%7t3@=n(i8^')
 
-# Gemini API Key
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+# Groq API Configuration
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_TEXT_MODEL = os.environ.get('GROQ_TEXT_MODEL', 'llama-3.3-70b-versatile')
+GROQ_VISION_MODEL = os.environ.get('GROQ_VISION_MODEL', 'llama-3.2-11b-vision-preview')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
