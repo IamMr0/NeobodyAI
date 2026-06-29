@@ -10,6 +10,9 @@ export default function WorkoutBuilder() {
   // AI Generator Form States
   const [goal, setGoal] = useState('Hypertrophy');
   const [experience, setExperience] = useState('Intermediate');
+  const [gender, setGender] = useState('Male');
+  const [fitnessStatus, setFitnessStatus] = useState('General Fitness');
+  const [daysPerWeek, setDaysPerWeek] = useState(4);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [optimizationInsight, setOptimizationInsight] = useState('');
@@ -53,7 +56,10 @@ export default function WorkoutBuilder() {
         },
         body: JSON.stringify({
           goal,
-          experience_level: experience
+          experience_level: experience,
+          gender,
+          fitness_status: fitnessStatus,
+          days_per_week: daysPerWeek
         })
       });
       if (response.ok) {
@@ -290,6 +296,48 @@ export default function WorkoutBuilder() {
                   <option value="Beginner">Beginner (Adaptation Focus)</option>
                   <option value="Intermediate">Intermediate (Capacity Focus)</option>
                   <option value="Advanced">Advanced (Overload Focus)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-label-bold uppercase mb-1">Gender</label>
+                <select 
+                  value={gender} 
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full bg-surface border-thin border-on-surface p-2 font-body-md focus:border-thick outline-none"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-label-bold uppercase mb-1">Fitness Status / Condition</label>
+                <select 
+                  value={fitnessStatus} 
+                  onChange={(e) => setFitnessStatus(e.target.value)}
+                  className="w-full bg-surface border-thin border-on-surface p-2 font-body-md focus:border-thick outline-none"
+                >
+                  <option value="General Fitness">General Fitness</option>
+                  <option value="Newbie">Newbie (First-time lifter)</option>
+                  <option value="Active Athlete">Active Athlete (High capacity)</option>
+                  <option value="Recovering from Injury">Recovering from Injury (Safe rehab)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-label-bold uppercase mb-1">Weekly Training Frequency</label>
+                <select 
+                  value={daysPerWeek} 
+                  onChange={(e) => setDaysPerWeek(Number(e.target.value))}
+                  className="w-full bg-surface border-thin border-on-surface p-2 font-body-md focus:border-thick outline-none"
+                >
+                  <option value={2}>2 Days / Week</option>
+                  <option value={3}>3 Days / Week</option>
+                  <option value={4}>4 Days / Week</option>
+                  <option value={5}>5 Days / Week</option>
+                  <option value={6}>6 Days / Week</option>
                 </select>
               </div>
 

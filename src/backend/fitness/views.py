@@ -141,6 +141,9 @@ class AIVolumePlanGeneratorView(APIView):
     def post(self, request):
         goal = request.data.get('goal', 'Hypertrophy')
         experience_level = request.data.get('experience_level', 'Intermediate')
+        gender = request.data.get('gender', 'Male')
+        fitness_status = request.data.get('fitness_status', 'General Fitness')
+        days_per_week = int(request.data.get('days_per_week', 4))
         
         # Retrieve latest metrics for context
         latest_metrics = BodyMetrics.objects.filter(user=request.user).order_by('-date_recorded').first()
@@ -148,7 +151,7 @@ class AIVolumePlanGeneratorView(APIView):
         muscle_mass = float(latest_metrics.muscle_mass_kg) if latest_metrics and latest_metrics.muscle_mass_kg else 35.0
         
         # Decision-Tree heuristic classifications
-        # 1. Classify weekly set volume and intensity based on experience level
+        # 1. Base sets, intensity and rest on experience level
         if experience_level == 'Beginner':
             sets = 3
             intensity = 'RPE 7 (3 reps in reserve)'
@@ -162,7 +165,22 @@ class AIVolumePlanGeneratorView(APIView):
             intensity = 'RPE 8 (2 reps in reserve)'
             rest = '2-3 minutes for compounds, 60-90s for accessories'
             
-        # 2. Classify exercise selection and rep ranges based on target goal
+        # 2. Refine based on fitness_status
+        status_note = ""
+        if fitness_status == 'Newbie':
+            sets = max(2, sets - 1)
+            intensity = 'RPE 6 (focused on safe form execution)'
+            status_note = "Form adaptation priority. Start light."
+        elif fitness_status == 'Recovering from Injury':
+            sets = 2
+            intensity = 'RPE 5 (active recovery / rehabilitation)'
+            rest = '2-3 minutes (extended rest for joint decompression)'
+            status_note = "Injury protocol: maintain light tension, avoid spinal load."
+        elif fitness_status == 'Active Athlete':
+            sets = min(5, sets + 1)
+            status_note = "Athlete protocol: heightened capacity for volume and recovery."
+
+        # 3. Base exercise selection on goal
         if goal == 'Strength':
             rep_range = '4-6 reps'
             target_exercises = ['Barbell Bench Press', 'Barbell Back Squat', 'Conventional Deadlift', 'Dumbbell Shoulder Press']
@@ -176,16 +194,26 @@ class AIVolumePlanGeneratorView(APIView):
             target_exercises = ['Barbell Bench Press', 'Barbell Back Squat', 'Bodyweight Pull-up', 'Dumbbell Bicep Curl', 'Dumbbell Shoulder Press']
             goal_desc = 'myofibrillar hypertrophy and sarcoplasmic volume'
 
-        # Query actual seeded exercises from DB
-        db_exercises = {ex.name: ex for ex in Exercise.objects.filter(name__in=target_exercises)}
+        # 4. Modify exercises for special conditions (Injury / Gender)
+        if fitness_status == 'Recovering from Injury':
+            # Swap heavy spine loaders
+            target_exercises = [ex.replace('Barbell Back Squat', 'Goblet Squat (Light)').replace('Conventional Deadlift', 'Kettlebell Swing') for ex in target_exercises]
+        
+        if gender == 'Female':
+            # Highlight posterior chain / lower body adaptation
+            target_exercises = [ex.replace('Barbell Back Squat', 'Barbell Back Squat (Glute Focus)') for ex in target_exercises]
+
+        # Query actual seeded exercises from DB (ignoring glute-focus suffix for query matching)
+        db_exercises = {ex.name: ex for ex in Exercise.objects.filter(name__in=[name.split(' (')[0] for name in target_exercises])}
         
         # Assemble routine exercises
         routine_exercises = []
         for name in target_exercises:
-            if name in db_exercises:
-                ex = db_exercises[name]
+            base_name = name.split(' (')[0]
+            if base_name in db_exercises:
+                ex = db_exercises[base_name]
                 routine_exercises.append({
-                    'name': ex.name,
+                    'name': name,
                     'sets': sets,
                     'reps': rep_range,
                     'intensity': intensity,
@@ -194,7 +222,6 @@ class AIVolumePlanGeneratorView(APIView):
                     'muscle_groups': ex.muscle_groups
                 })
             else:
-                # Fallback in case DB is not yet seeded
                 fallback_equipment = 'Barbell'
                 fallback_muscles = ['Full Body']
                 if 'Pushup' in name or 'Pull-up' in name:
@@ -220,19 +247,87 @@ class AIVolumePlanGeneratorView(APIView):
                 })
 
         # Calculate total load recommendation
+        gender_mult = 0.95 if gender == 'Female' else 1.0
         intensity_mult = 0.85 if goal == 'Strength' else (0.75 if goal == 'Hypertrophy' else 0.50)
-        target_load = round(weight * intensity_mult, 1)
+        target_load = round(weight * intensity_mult * gender_mult, 1)
         
-        # Generate custom biomechanic comment incorporating user metrics
+        total_weekly_sets = len(target_exercises) * sets * days_per_week
+        
         insight = (
-            f"Optimized weekly routine designed for user profile ({weight} kg, muscle mass: {muscle_mass} kg). "
+            f"Optimized weekly routine designed for user profile ({gender}, {weight} kg, muscle mass: {muscle_mass} kg). "
             f"Targeting {goal_desc} using {sets} working sets per movement. "
-            f"Based on your body weight, your projected working load for major compound movements is approximately {target_load} kg. "
-            f"Maintain {rest} of rest between sets to allow full ATP resynthesis."
+            f"Working load recommendation: approximately {target_load} kg. "
+            f"Given your frequency of {days_per_week} days/week, your weekly volume accumulates to {total_weekly_sets} sets. "
+            f"Split this work to allow 48-72 hours of recovery for major muscle groups. {status_note}"
         )
 
         return Response({
-            'routine_name': f"AI {experience_level} {goal} Routine",
+            'routine_name': f"AI {experience_level} {goal} Routine ({fitness_status})",
             'exercises': routine_exercises,
             'ai_optimization_insight': insight
         })
+
+class BodyScanView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        image_base64 = request.data.get('image')
+        if not image_base64:
+            return Response({'error': 'Image payload is required'}, status=400)
+            
+        latest = BodyMetrics.objects.filter(user=request.user).order_by('-date_recorded').first()
+        weight = float(latest.weight_kg) if latest else 75.0
+        
+        try:
+            from rag.services import get_groq_client
+            from django.conf import settings
+            client = get_groq_client()
+            
+            prompt = (
+                f"You are IRON AI, a Neubrutalist, high-energy fitness assistant.\n"
+                f"Analyze this user physique/posture image.\n"
+                f"Weight is approximately {weight} kg.\n"
+                f"Provide a detailed posture assessment (e.g. shoulder alignment, spinal curvature cues, lateral balance), "
+                f"estimated body fat category (lean, average, overfat), and actionable recommendations for corrective training.\n"
+                f"Use a professional, no-nonsense coaching tone. Limit response to 3-4 concise, impactful sentences."
+            )
+            
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": image_base64,
+                                },
+                            },
+                        ],
+                    }
+                ],
+                model=settings.GROQ_VISION_MODEL
+            )
+            
+            feedback = chat_completion.choices[0].message.content.strip()
+            
+            # Save this feedback to the latest metrics if available
+            if latest:
+                latest.metabolic_insight = f"[Physique Scan Feedback]:\n{feedback}\n\n[Previous Insight]:\n{latest.metabolic_insight or ''}"
+                latest.save()
+            else:
+                # Create a fallback metrics entry if none exists
+                latest = BodyMetrics.objects.create(
+                    user=request.user,
+                    weight_kg=75.0,
+                    metabolic_insight=f"[Physique Scan Feedback]:\n{feedback}"
+                )
+                
+            return Response({
+                'feedback': feedback,
+                'latest_metrics': BodyMetricsSerializer(latest).data
+            })
+        except Exception as e:
+            print(f"Error during body scan: {e}")
+            return Response({'error': 'Failed to process posture scan. Make sure vision model is active.'}, status=500)

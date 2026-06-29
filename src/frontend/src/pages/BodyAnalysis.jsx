@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import AuthContext from '../context/AuthContext';
 
 export default function BodyAnalysis() {
@@ -9,12 +9,60 @@ export default function BodyAnalysis() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Physique Scan states
+  const [scanImage, setScanImage] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState('');
+  const scanFileInputRef = useRef(null);
+
   // Form State
   const [formData, setFormData] = useState({
     weight_kg: '',
     body_fat_percentage: '',
     muscle_mass_kg: ''
   });
+
+  const handleScanImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScanImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePhysiqueScan = async (e) => {
+    e.preventDefault();
+    if (!scanImage || !token) return;
+    setScanning(true);
+    setScanFeedback('');
+    try {
+      const response = await fetch('http://localhost:8000/api/fitness/body-scan/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ image: scanImage })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setScanFeedback(data.feedback);
+        if (data.latest_metrics) {
+          setMetrics(data.latest_metrics);
+        }
+        setScanImage(null);
+      } else {
+        alert('Failed to analyze body posture scan');
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const fetchMetrics = async () => {
     if (!token) return;
@@ -172,6 +220,62 @@ export default function BodyAnalysis() {
                 )}
               </button>
             </form>
+          </div>
+
+          {/* Physique / Posture Scan Card */}
+          <div className="bg-surface-container-lowest border-thick border-on-surface p-stack-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mt-4">
+            <h3 className="font-headline-md text-headline-md uppercase border-b-thick border-on-surface pb-2 mb-stack-md">
+              Posture & Physique Scan
+            </h3>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-4 leading-relaxed">
+              Upload a front/profile photo of your physique to get instant posture evaluations and developmental feedback from Groq Llama 4 Vision.
+            </p>
+            <form onSubmit={handlePhysiqueScan} className="space-y-4">
+              <input 
+                type="file" 
+                ref={scanFileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleScanImageChange} 
+              />
+              <button 
+                type="button"
+                onClick={() => scanFileInputRef.current?.click()}
+                className="w-full border-thick border-dashed border-outline-variant p-6 font-label-bold text-label-bold flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all bg-surface"
+              >
+                {scanImage ? (
+                  <>
+                    <img src={scanImage} alt="Body preview" className="h-32 w-auto object-contain border-thin border-on-surface mb-2 bg-white" />
+                    <span className="text-primary text-sm uppercase">CHANGE PHOTO</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-4xl text-outline">photo_camera</span>
+                    <span className="uppercase">CHOOSE PHYSIQUE PHOTO</span>
+                  </>
+                )}
+              </button>
+
+              <button 
+                type="submit" 
+                disabled={scanning || !scanImage}
+                className="w-full bg-secondary text-on-secondary border-thick border-on-surface py-3 font-label-bold text-label-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all uppercase flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {scanning ? (
+                  <><span className="material-symbols-outlined animate-spin">sync</span> ANALYZING PHYSIQUE...</>
+                ) : (
+                  <><span className="material-symbols-outlined">center_focus_strong</span> SCAN PHYSIQUE</>
+                )}
+              </button>
+            </form>
+
+            {scanFeedback && (
+              <div className="mt-6 border-thick border-on-surface p-4 bg-primary-container text-on-primary-container shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 font-label-bold text-label-sm uppercase">AI Posture Scan</div>
+                <h4 className="font-label-bold text-label-bold uppercase mb-2 mt-2">Iron AI Biomechanical Feedback</h4>
+                <p className="font-body-md text-body-md leading-relaxed whitespace-pre-wrap">{scanFeedback}</p>
+              </div>
+            )}
           </div>
         </div>
 
