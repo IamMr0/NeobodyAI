@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 export default function BodyAnalysis() {
   const { token } = useContext(AuthContext);
   const [metrics, setMetrics] = useState(null);
+  const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -29,13 +30,31 @@ export default function BodyAnalysis() {
       }
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchTrends = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch('http://localhost:8000/api/fitness/trends/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTrends(data);
+      }
+    } catch (err) {
+      console.error('Failed to load body metrics trends:', err);
     }
   };
 
   useEffect(() => {
-    fetchMetrics();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchMetrics(), fetchTrends()]);
+      setLoading(false);
+    };
+    loadData();
   }, [token]);
 
   const handleInputChange = (e) => {
@@ -69,6 +88,7 @@ export default function BodyAnalysis() {
         const data = await response.json();
         setMetrics(data);
         setFormData({ weight_kg: '', body_fat_percentage: '', muscle_mass_kg: '' });
+        await fetchTrends(); // Refresh predictions and sparkline after saving
       } else {
         alert('Failed to save metrics');
       }
@@ -185,6 +205,96 @@ export default function BodyAnalysis() {
                   {metrics.metabolic_insight || "Awaiting insight generation."}
                 </p>
               </div>
+
+              {/* Data Science & Predictions Card */}
+              {trends && (
+                <div className="bg-surface-container-lowest border-thick border-on-surface p-stack-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 font-label-bold text-label-sm uppercase">Data Science</div>
+                  <div className="flex items-center gap-2 mb-stack-md border-b-thin border-on-surface pb-2 mt-4">
+                    <span className="material-symbols-outlined text-primary text-3xl">query_stats</span>
+                    <h3 className="font-headline-md text-headline-md text-on-surface uppercase">Metabolic Predictions</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-md mb-6">
+                    {/* FFMI Indicator */}
+                    <div className="border-thin border-on-surface p-4 bg-surface-container-low">
+                      <p className="font-label-bold text-label-sm text-on-surface-variant uppercase mb-1">Fat-Free Mass Index (FFMI)</p>
+                      <h4 className="font-headline-lg text-headline-lg">{trends.physiological_stats?.ffmi ?? '—'}</h4>
+                      <p className="font-label-sm text-label-sm text-primary uppercase mt-1">{trends.physiological_stats?.ffmi_class}</p>
+                    </div>
+
+                    {/* BMR Indicator */}
+                    <div className="border-thin border-on-surface p-4 bg-surface-container-low">
+                      <p className="font-label-bold text-label-sm text-on-surface-variant uppercase mb-1">Basal Metabolic Rate (BMR)</p>
+                      <h4 className="font-headline-lg text-headline-lg">{trends.physiological_stats?.bmr ?? '—'} <span className="text-body-md font-medium uppercase text-on-surface-variant">kcal</span></h4>
+                      <p className="font-body-md text-body-md text-on-surface-variant mt-1">Est. daily energy required at rest.</p>
+                    </div>
+                  </div>
+
+                  {/* Projections */}
+                  {trends.projection && (
+                    <div className="border-thick border-on-surface p-4 bg-primary-container text-on-primary-container mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <h4 className="font-label-bold text-label-bold uppercase mb-2">30-Day Trend Forecasting</h4>
+                      <p className="font-body-lg text-body-lg">
+                        Based on your logging velocity, your weight is projected to reach <strong className="underline">{trends.projection.weight_in_30_days} kg</strong> ({trends.projection.weight_change >= 0 ? `+${trends.projection.weight_change}` : trends.projection.weight_change} kg change) in 30 days.
+                      </p>
+                      {trends.projection.body_fat_in_30_days && (
+                        <p className="font-body-md text-body-md text-on-primary-container/85 mt-1">
+                          Body fat is expected to align at roughly {trends.projection.body_fat_in_30_days}% ({trends.projection.body_fat_change >= 0 ? `+${trends.projection.body_fat_change}` : trends.projection.body_fat_change}% change).
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SVG Sparkline / Trend Graph */}
+                  {trends.historical_data?.length >= 2 && (
+                    <div>
+                      <p className="font-label-bold text-label-sm text-on-surface-variant uppercase mb-3">Weight History Trendline</p>
+                      <div className="h-28 w-full border-thin border-on-surface bg-surface-container-low flex items-center justify-center p-2">
+                        {(() => {
+                          const weights = trends.historical_data.map(h => h.weight);
+                          const minWeight = Math.min(...weights) - 0.5;
+                          const maxWeight = Math.max(...weights) + 0.5;
+                          const weightRange = maxWeight - minWeight || 1;
+                          const width = 500;
+                          const height = 80;
+                          const points = trends.historical_data.map((h, i) => {
+                            const x = (i / (trends.historical_data.length - 1)) * (width - 20) + 10;
+                            const y = height - ((h.weight - minWeight) / weightRange) * (height - 20) - 10;
+                            return `${x},${y}`;
+                          }).join(' ');
+
+                          return (
+                            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+                              <polyline
+                                fill="none"
+                                stroke="var(--color-primary)"
+                                strokeWidth="3"
+                                points={points}
+                              />
+                              {trends.historical_data.map((h, i) => {
+                                const x = (i / (trends.historical_data.length - 1)) * (width - 20) + 10;
+                                const y = height - ((h.weight - minWeight) / weightRange) * (height - 20) - 10;
+                                return (
+                                  <g key={i} className="group">
+                                    <circle
+                                      cx={x}
+                                      cy={y}
+                                      r="5"
+                                      className="fill-on-surface stroke-surface stroke-2 cursor-pointer hover:r-6 transition-all"
+                                    />
+                                    <title>{`Date: ${h.date}\nWeight: ${h.weight} kg`}</title>
+                                  </g>
+                                );
+                              })}
+                            </svg>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             /* Empty Dashboard State */

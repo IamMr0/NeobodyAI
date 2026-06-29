@@ -35,20 +35,75 @@ def build_context(user, session):
     context += "\nProvide actionable, direct, and energetic fitness advice. Keep it concise."
     return context
 
-def generate_chat_response(user, user_message, session):
+import base64
+import json
+from google.genai import types
+
+def generate_chat_response(user, user_message, session, image_base64=None):
     client = get_gemini_client()
     system_instruction = build_context(user, session)
     
+    if image_base64:
+        try:
+            # Decode base64 image
+            if ',' in image_base64:
+                header, base64_data = image_base64.split(',', 1)
+            else:
+                base64_data = image_base64
+                header = "image/jpeg"
+            
+            mime_type = header.split(';')[0].split(':')[1] if ';' in header and ':' in header else 'image/jpeg'
+            image_bytes = base64.b64decode(base64_data)
+            
+            # Structured prompt for Computer Vision form cues
+            scan_prompt = (
+                f"{system_instruction}\n\n"
+                f"Analyze the exercise form in the attached image.\n"
+                f"You MUST return your response as a valid JSON object with the following keys:\n"
+                f"1. \"analysis_text\": A paragraph containing direct, actionable biomechanical coaching feedback.\n"
+                f"2. \"joint_angles\": A dictionary mapping detected joints to estimated angles (e.g. \"Knee Flexion\": \"85 degrees\", \"Spine Tilt\": \"12 degrees\").\n"
+                f"3. \"posture_check\": Safety status, choose exactly one of: \"Safe\", \"Warning\", \"Critical\".\n"
+                f"4. \"suggestions\": An array of 2-3 specific correction recommendations.\n"
+                f"Return ONLY the raw JSON object, no markdown code block backticks."
+            )
+            
+            response = client.models.generate_content(
+                model='gemini-3.5-flash',
+                contents=[
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                    scan_prompt
+                ]
+            )
+            
+            resp_text = response.text.strip()
+            if resp_text.startswith("```json"):
+                resp_text = resp_text[7:]
+            if resp_text.endswith("```"):
+                resp_text = resp_text[:-3]
+            resp_text = resp_text.strip()
+            
+            parsed_data = json.loads(resp_text)
+            ai_msg_text = parsed_data.get('analysis_text', '')
+            ai_insight = {
+                'joint_angles': parsed_data.get('joint_angles', {}),
+                'posture_check': parsed_data.get('posture_check', 'Safe'),
+                'suggestions': parsed_data.get('suggestions', [])
+            }
+            return ai_msg_text, ai_insight
+        except Exception as img_err:
+            print(f"Error parsing image form check: {img_err}")
+            # Fallback to standard chat response below if parsing fails
+
     try:
         full_prompt = f"System Instructions:\n{system_instruction}\n\nUser Message:\n{user_message}"
         response = client.models.generate_content(
             model='gemini-3.5-flash',
             contents=full_prompt
         )
-        return response.text
+        return response.text, None
     except Exception as e:
         print(f"Gemini API Error: {e}")
-        return "System error: Unable to connect to the central AI core. Try again later."
+        return "System error: Unable to connect to the central AI core. Try again later.", None
 
 def generate_body_insight(user, weight, body_fat, muscle_mass):
     client = get_gemini_client()

@@ -10,6 +10,7 @@ class ChatMessageView(APIView):
     def post(self, request):
         user_text = request.data.get('message')
         session_id = request.data.get('session_id')
+        image_base64 = request.data.get('image') # Base64 string for image attachment
         
         if not user_text:
             return Response({'error': 'Message is required'}, status=400)
@@ -23,27 +24,36 @@ class ChatMessageView(APIView):
         else:
             session = ChatSession.objects.create(user=request.user, topic=user_text[:50])
             
-        # Save user message
+        # Save user message (including image if uploaded)
+        user_insight = None
+        if image_base64:
+            user_insight = {'image': image_base64}
+
         ChatMessage.objects.create(
             session=session,
             sender='user',
-            message=user_text
+            message=user_text,
+            insight_data=user_insight
         )
         
-        # Call RAG / Gemini
-        ai_response_text = generate_chat_response(request.user, user_text, session)
+        # Call RAG / Gemini with optional image
+        ai_response_text, ai_insight = generate_chat_response(
+            request.user, user_text, session, image_base64=image_base64
+        )
         
-        # Save AI message
+        # Save AI message with biomechanical analysis insights
         ai_msg = ChatMessage.objects.create(
             session=session,
             sender='ai',
-            message=ai_response_text
+            message=ai_response_text,
+            insight_data=ai_insight
         )
         
         return Response({
             'session_id': session.id,
             'message': ai_msg.message,
-            'timestamp': ai_msg.timestamp
+            'timestamp': ai_msg.timestamp,
+            'insight_data': ai_msg.insight_data
         })
 
 class ChatHistoryView(APIView):
@@ -57,8 +67,21 @@ class ChatHistoryView(APIView):
                 'id': m.id,
                 'sender': m.sender,
                 'message': m.message,
-                'timestamp': m.timestamp
+                'timestamp': m.timestamp,
+                'insight_data': m.insight_data
             } for m in messages]
             return Response(data)
         except ChatSession.DoesNotExist:
             return Response({'error': 'Session not found'}, status=404)
+
+class ChatSessionListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        sessions = ChatSession.objects.filter(user=request.user).order_by('-start_time')
+        data = [{
+            'id': s.id,
+            'start_time': s.start_time,
+            'topic': s.topic
+        } for s in sessions]
+        return Response(data)

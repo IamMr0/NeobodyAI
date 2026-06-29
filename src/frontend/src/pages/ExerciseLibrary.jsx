@@ -7,9 +7,25 @@ export default function ExerciseLibrary() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch from /api/fitness/exercises/ when endpoint is ready
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    const fetchExercises = async () => {
+      if (!token) return;
+      try {
+        const response = await fetch('http://localhost:8000/api/fitness/exercises/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setExercises(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch exercises:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExercises();
   }, [token]);
 
   if (loading) {
