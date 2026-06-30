@@ -79,6 +79,10 @@ export default function AIChatbot() {
           setMessages(mappedMessages);
         } else {
           console.error('Failed to fetch chat history');
+          if (response.status === 404) {
+            setSessionId(null);
+            localStorage.removeItem('current_chat_session_id');
+          }
         }
       } catch (err) {
         console.error('Error fetching chat history:', err);
@@ -130,10 +134,40 @@ export default function AIChatbot() {
           localStorage.setItem('current_chat_session_id', data.session_id);
           fetchSessions(); // Refresh sessions list in the sidebar
         }
+      } else if (response.status === 404 && sessionId) {
+        // Stale session ID from localStorage. Clear it and retry creating a new session.
+        localStorage.removeItem('current_chat_session_id');
+        setSessionId(null);
+        
+        const retryResponse = await fetch('http://localhost:8000/api/chat/message/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            session_id: null,
+            image: userImage
+          })
+        });
+        
+        if (retryResponse.ok) {
+          const data = await retryResponse.json();
+          setMessages((prev) => [
+            ...prev,
+            { role: 'ai', content: data.message, insight_data: data.insight_data },
+          ]);
+          setSessionId(data.session_id);
+          localStorage.setItem('current_chat_session_id', data.session_id);
+          fetchSessions();
+        } else {
+          throw new Error('Failed to start a new chat session after reset.');
+        }
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: 'ai', content: 'Error: Failed to connect to IRON AI. Please ensure the backend is running and the Gemini API key is configured.' },
+          { role: 'ai', content: 'Error: Failed to connect to IRON AI. Please ensure the backend is running and the Groq API key is configured.' },
         ]);
       }
     } catch (err) {

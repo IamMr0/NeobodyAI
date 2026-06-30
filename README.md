@@ -5,8 +5,9 @@ A high-performance fitness ecosystem leveraging AI for biomechanical data, tailo
 ## Tech Stack
 - **Frontend**: React + Vite + Tailwind V4
 - **Backend**: Django REST Framework + SimpleJWT Authentication
-- **AI / LLM**: Google Gemini 1.5 Flash (via `google-generativeai`)
-- **Database**: PostgreSQL 15
+- **AI / LLM**: Groq API (Llama 3/4 Models configured in `.env`)
+- **Database**: PostgreSQL 15 + `pgvector` Extension
+- **Vector Embeddings**: FastEmbed (Offline CPU-optimized sentence embeddings)
 - **Orchestration**: Docker Compose
 
 ## Core Features
@@ -25,9 +26,9 @@ A high-performance fitness ecosystem leveraging AI for biomechanical data, tailo
 Before running the app, you must set up your backend environment variables to enable the AI features.
 1. Navigate to the backend directory: `src/backend/`
 2. You will find an `.env` file (or create one if it's missing).
-3. Open it and add your Gemini API Key:
+3. Open it and add your Groq API Key:
    ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
    ```
 
 ### 2. Start the Containers
@@ -37,14 +38,20 @@ docker compose up --build -d
 ```
 *This will build the images and start the `db`, `backend`, and `frontend` containers in the background.*
 
-### 2. Run Database Migrations
-On your very first run, you need to set up the PostgreSQL database schema. Execute these commands:
+### 3. Run Database Migrations & Seed Exercises
+On your very first run, you need to set up the PostgreSQL database schema, generate migration files, apply them, and seed the exercise library:
 ```bash
+# Generate migration files for all apps
 docker compose exec backend python manage.py makemigrations users fitness nutrition chatbot
+
+# Apply database migrations
 docker compose exec backend python manage.py migrate
+
+# Seed the exercise library (runs FastEmbed locally to generate vector embeddings)
+docker compose exec backend python manage.py seed_exercises
 ```
 
-### 3. Create Initial Accounts (Recommended)
+### 4. Create Initial Accounts (Recommended)
 To log into the app, you should create some user accounts.
 
 **Create an Admin (Superuser):**
@@ -59,7 +66,7 @@ docker compose exec backend python manage.py shell -c "from users.models import 
 ```
 *(This automatically creates a standard user with the username `user` and password `user`).*
 
-### 4. Access the Application
+### 5. Access the Application
 - **Frontend App (Vite Development Server)**: [http://localhost:5173](http://localhost:5173)
 - **Backend API Server**: [http://localhost:8000](http://localhost:8000)
 - **Django Admin Panel**: [http://localhost:8000/admin](http://localhost:8000/admin) (Log in with your superuser credentials here)

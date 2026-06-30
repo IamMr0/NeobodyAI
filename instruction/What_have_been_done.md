@@ -75,8 +75,9 @@ A complete design token system was built using Tailwind v4's `@theme` block:
 
 ### `ExerciseLibrary.jsx` (`/library`)
 - **Hero Section:** "The Vault" banner with icon, description.
-- **Filter Bar:** Equipment filter buttons (`flex-wrap`) with full-width "More Filters" button on mobile.
-- **Exercise Grid:** Dynamically queries and renders default movements seeded directly from the PostgreSQL database (Bench Press, Squats, Deadlifts, Pullups, Curls, etc.). Includes muscle group tags, AI technique guides, and technique CTAs.
+- **Dynamic Filter & Search Bar:** Features a Neubrutalist filtering control panel supporting free-text name search, along with Category, Body Part, and Equipment select inputs. Dropdown choices are fetched dynamically from the database to remain in sync.
+- **Server-Side Pagination:** Interacts with paginated backend results (20 items/page). Includes previous/next pagination footer controls with disabled-state indicators.
+- **Interactive Technique Guide Modal:** Clicking "View Technique" triggers a premium Neubrutalist modal that displays full exercise details, primary/secondary muscles, descriptions, and a step-by-step ordered list of instructions.
 
 ### `WorkoutBuilder.jsx` (`/builder`)
 - **Top Action Bar:** Responsive banner with "AI Generate Plan" button that opens an upgraded inputs modal.
@@ -101,7 +102,9 @@ A complete design token system was built using Tailwind v4's `@theme` block:
 ## 5. Backend Architecture & Integrations
 
 - **Django Apps:** Structured into `users`, `fitness`, `nutrition`, and `chatbot` apps.
-- **Database Schema:** Seeded default database movements using Django migration scripts.
+- **Database Schema & pgvector:** Migrated DB fields to support mapping all attributes of `exercises.json` (category, body part, target, muscles, instruction steps, external ID). Integrated the PostgreSQL `vector` extension natively via custom migrations.
+- **Exercise Database Seeding Command:** Implemented `seed_exercises` management command that parses the `exercises.json` dataset, computes 384-dimensional sentence embeddings via a local CPU-optimized `fastembed` model (`BAAI/bge-small-en-v1.5`), and inserts them in bulk into Postgres.
+- **Vector similarity Search (RAG):** Upgraded `build_context` in `services.py` to embed user messages and fetch the top 5 most semantically matching exercises via a `pgvector` Cosine Distance database query.
 - **Groq API Client Integration:** Migrated all AI integrations from Gemini to Groq. Instantiated the `groq.Groq` SDK in `rag/services.py`, running:
   - `meta-llama/llama-4-scout-17b-16e-instruct` for multimodal vision scans (chat form checkers and body analysis posture checks) with native JSON response formatting.
   - `llama-3.3-70b-versatile` for high-speed text generation tasks (chatbot, body insights, and nutrition checks).

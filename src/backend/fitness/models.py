@@ -1,12 +1,22 @@
 from django.db import models
 from django.conf import settings
 
+from pgvector.django import VectorField
+
 class Exercise(models.Model):
+    external_id = models.CharField(max_length=50, null=True, blank=True, unique=True)
     name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    body_part = models.CharField(max_length=100, null=True, blank=True)
     equipment = models.CharField(max_length=255)
-    muscle_groups = models.JSONField(default=list)
+    target = models.CharField(max_length=100, null=True, blank=True)
+    muscle_group = models.CharField(max_length=100, null=True, blank=True)
+    muscle_groups = models.JSONField(default=list) # Keeps backward compatibility
+    secondary_muscles = models.JSONField(default=list)
     instructions = models.TextField(blank=True, null=True)
+    instruction_steps = models.JSONField(default=list)
     ai_insight = models.TextField(blank=True, null=True)
+    embedding = VectorField(dimensions=384, null=True, blank=True)
 
     def __str__(self):
         return self.name

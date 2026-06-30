@@ -1,6 +1,8 @@
+from django.db import models
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from .models import BodyMetrics, Exercise
 from .serializers import BodyMetricsSerializer, ExerciseSerializer
 from rag.services import generate_body_insight
@@ -30,13 +32,64 @@ class BodyMetricsView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+class ExercisePagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class ExerciseListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        exercises = Exercise.objects.all()
-        serializer = ExerciseSerializer(exercises, many=True)
+        queryset = Exercise.objects.all().order_by('id')
+        
+        # Filtering
+        equipment = request.query_params.get('equipment')
+        if equipment:
+            queryset = queryset.filter(equipment__iexact=equipment)
+            
+        category = request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+            
+        body_part = request.query_params.get('body_part')
+        if body_part:
+            queryset = queryset.filter(body_part__iexact=body_part)
+            
+        search = request.query_params.get('search')
+        if search:
+            # Search in name or instructions
+            queryset = queryset.filter(
+                models.Q(name__icontains=search) | 
+                models.Q(instructions__icontains=search)
+            )
+            
+        paginator = ExercisePagination()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        if page is not None:
+            serializer = ExerciseSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+            
+        serializer = ExerciseSerializer(queryset, many=True)
         return Response(serializer.data)
+
+class ExerciseFiltersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        categories = Exercise.objects.values_list('category', flat=True).distinct()
+        body_parts = Exercise.objects.values_list('body_part', flat=True).distinct()
+        equipments = Exercise.objects.values_list('equipment', flat=True).distinct()
+        
+        clean_categories = sorted(list(set(c.strip().title() for c in categories if c)))
+        clean_body_parts = sorted(list(set(bp.strip().title() for bp in body_parts if bp)))
+        clean_equipments = sorted(list(set(e.strip().title() for e in equipments if e)))
+        
+        return Response({
+            'categories': clean_categories,
+            'body_parts': clean_body_parts,
+            'equipments': clean_equipments
+        })
 
 class BodyMetricsTrendsView(APIView):
     permission_classes = [IsAuthenticated]

@@ -2,6 +2,7 @@ from groq import Groq
 from django.conf import settings
 from fitness.models import Exercise
 from chatbot.models import ChatMessage, ChatSession
+from pgvector.django import CosineDistance
 
 def get_groq_client():
     api_key = settings.GROQ_API_KEY
@@ -9,19 +10,49 @@ def get_groq_client():
         print("Warning: GROQ_API_KEY is not set.")
     return Groq(api_key=api_key)
 
-def build_context(user, session):
+def build_context(user, session, user_message=None):
     context = "You are IRON AI, a Neubrutalist, high-energy, no-nonsense fitness assistant.\n\n"
     
-    # Retrieve Exercises for context
-    exercises = Exercise.objects.all()[:20] # Limit to avoid massive tokens
-    if exercises.exists():
-        context += "Available Exercises Context:\n"
-        for ex in exercises:
-            context += f"- {ex.name} (Equipment: {ex.equipment}, Muscles: {ex.muscle_groups})\n"
+    # Retrieve Exercises for context using Vector Search or fallback keywords
+    exercises = None
+    try:
+        if user_message:
+            try:
+                from fastembed import TextEmbedding
+                embedder = TextEmbedding()
+                embedding = list(embedder.embed([user_message]))[0]
+                # Query similarity search using CosineDistance
+                exercises = Exercise.objects.exclude(embedding__isnull=True).annotate(
+                    distance=CosineDistance('embedding', embedding)
+                ).order_by('distance')[:5]
+            except Exception as e:
+                print(f"Vector search failed or FastEmbed not loaded: {e}")
+
+        # Fallback search if vector search is inactive/returned empty
+        if exercises is None or not exercises.exists():
+            keywords = [word for word in user_message.split() if len(word) > 3] if user_message else []
+            if keywords:
+                from django.db.models import Q
+                query = Q()
+                for kw in keywords[:3]:
+                    query |= Q(name__icontains=kw) | Q(instructions__icontains=kw)
+                exercises = Exercise.objects.filter(query)[:5]
+            
+            if exercises is None or not exercises.exists():
+                exercises = Exercise.objects.all()[:5]
+
+        if exercises.exists():
+            context += "Available Exercises Context:\n"
+            for ex in exercises:
+                desc = ex.instructions[:150] + "..." if ex.instructions and len(ex.instructions) > 150 else (ex.instructions or "")
+                context += f"- {ex.name} (Equipment: {ex.equipment}, Target: {ex.target}, Category: {ex.category}). Instructions: {desc}\n"
+    except Exception as db_err:
+        print(f"Database error during RAG context generation (verify migrations are run): {db_err}")
+
     
     context += "\nUser Profile Context:\n"
     context += f"Username: {user.username}\n\n"
-
+    
     # Retrieve Chat History
     if session:
         history = ChatMessage.objects.filter(session=session).order_by('-timestamp')[:10]
@@ -38,7 +69,7 @@ import json
 
 def generate_chat_response(user, user_message, session, image_base64=None):
     client = get_groq_client()
-    system_instruction = build_context(user, session)
+    system_instruction = build_context(user, session, user_message)
     
     if image_base64:
         try:
